@@ -2179,6 +2179,20 @@ class BibtexParserTest {
     }
 
     @Test
+    void parseSemicolonSeparatedKeywords() throws ParseException {
+        Optional<BibEntry> result = parser.parseSingleEntry("""
+                @Article{,
+                Keywords={keywordOne; keywordTwo; keywordThree},
+                }
+                """);
+
+        BibEntry expectedEntry = new BibEntry(StandardEntryType.Article)
+                .withField(StandardField.KEYWORDS, "keywordOne, keywordTwo, keywordThree");
+
+        assertEquals(Optional.of(expectedEntry), result);
+    }
+
+    @Test
     void parseBibDeskLinkedFiles() throws IOException {
 
         BibEntry expectedEntry = new BibEntry(StandardEntryType.Article);

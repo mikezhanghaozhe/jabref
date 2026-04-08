@@ -42,6 +42,8 @@ import org.jabref.model.database.KeyCollisionException;
 import org.jabref.model.entry.BibEntry;
 import org.jabref.model.entry.BibEntryType;
 import org.jabref.model.entry.BibtexString;
+import org.jabref.model.entry.Keyword;
+import org.jabref.model.entry.KeywordList;
 import org.jabref.model.entry.LinkedFile;
 import org.jabref.model.entry.field.Field;
 import org.jabref.model.entry.field.FieldFactory;
@@ -106,6 +108,11 @@ public class BibtexParser implements Parser {
 
     private int line = 1;
     private int column = 1;
+
+    // Default delimiters to try when importing keywords, in priority order.
+    // It overrides the delimiter stored in preference.
+    private final List<Character> IMPORT_KEYWORD_DELIMITERS = List.of(';', ',');
+
     // Stores the last read column of the highest column number encountered on any line so far.
     // The intended data structure is Stack, but it is not used because Java code style checkers complain.
     // In basic JDK data structures, there is no size-limited stack. We did not want to include Apache Commons Collections only for "CircularFifoBuffer"
@@ -759,9 +766,16 @@ public class BibtexParser implements Parser {
                 // it inconvenient for users if JabRef did not accept it.
                 if (field.getProperties().contains(FieldProperty.PERSON_NAMES)) {
                     entry.setField(field, entry.getField(field).orElse("") + " and " + content);
-                } else if (StandardField.KEYWORDS == field) {
+                } else if (StandardField.KEYWORDS == field) { // If there are duplicated keywords fields.
                     // TODO: multiple keywords fields should be combined to one
-                    entry.addKeyword(content, importFormatPreferences.bibEntryPreferences().getKeywordSeparator());
+
+                    // Parse the new content with the heuristic delimiter.
+                    KeywordList importedKeywords = KeywordList.parseImport(content, IMPORT_KEYWORD_DELIMITERS);
+                    Character outputDelimiter = importFormatPreferences.bibEntryPreferences().getKeywordSeparator();
+                    // Add each keyword individually.
+                    for (Keyword kw : importedKeywords) {
+                        entry.addKeyword(kw, outputDelimiter);
+                    }
                 }
             } else {
                 // If a BibDesk File Field is encountered
@@ -793,7 +807,15 @@ public class BibtexParser implements Parser {
                         LOGGER.error("Could not parse BibDesk files content (field: bdsk-file...) for entry {}", entry, e);
                     }
                 } else {
-                    entry.setField(field, content);
+                    if (StandardField.KEYWORDS == field) { // If there are no duplicated keywords fields encountered yet.
+                        // Import the keywordList with default, heuristic delimiter.
+                        KeywordList parsed = KeywordList.parseImport(content, IMPORT_KEYWORD_DELIMITERS);
+                        // Re-serialize with the user's preference delimiter.
+                        entry.setField(field, parsed.getAsString(
+                                importFormatPreferences.bibEntryPreferences().getKeywordSeparator()));
+                    } else {
+                        entry.setField(field, content);
+                    }
                 }
             }
         }

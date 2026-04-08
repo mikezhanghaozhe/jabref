@@ -88,6 +88,32 @@ public class KeywordList implements Iterable<Keyword> {
         return keywordList;
     }
 
+    /// Parses the keyword list using heuristic delimiter detection for the importing process.
+    /// Tries each delimiter in the provided list in priority order; if none found, falls back to comma.
+    ///
+    /// @param keywordString a String of keywordChains
+    /// @param delimiters    a List of delimiters used for separating the keywords in the importing process
+    /// @return a parsed list containing the keywordChains
+    public static KeywordList parseImport(@NonNull String keywordString, @NonNull List<Character> delimiters) {
+        Character delimiter = detectImportDelimiter(keywordString, delimiters);
+        return parse(keywordString, delimiter);
+    }
+
+    /// Detects which delimiter to use by checking the keyword string for each candidate in priority order.
+    ///
+    /// @param keywordString a String of keywordChains
+    /// @param delimiters    a List of delimiters used for separating the keywords in the importing process
+    /// @return a character representing the delimiter to use
+    static Character detectImportDelimiter(@NonNull String keywordString, @NonNull List<Character> delimiters) {
+        for (Character delimiter : delimiters) {
+            if (keywordString.indexOf(delimiter) >= 0) {
+                return delimiter;
+            }
+        }
+        // Falls back to comma if none of the delimiters are found.
+        return ',';
+    }
+
     public static String serialize(List<Keyword> keywords, Character delimiter) {
         String delimiterStr = delimiter.toString();
         String escapeSequenceStr = Keyword.DEFAULT_ESCAPE_SYMBOL.toString();

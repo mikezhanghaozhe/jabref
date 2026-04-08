@@ -86,10 +86,45 @@ class KeywordListTest {
     }
 
     @Test
+    void parseImportSingleKeyword() {
+        // Current behavior: semicolons are NOT recognized when delimiter is comma
+        assertEquals(new KeywordList("keywordOne"),
+                KeywordList.parseImport("keywordOne", List.of(';', ',')));
+    }
+
+    @Test
+    void parseImportWithSemicolonDelimiter() {
+        // Current behavior: semicolons are NOT recognized when delimiter is comma
+        assertEquals(new KeywordList("keywordOne", "keywordTwo"),
+                KeywordList.parseImport("keywordOne; keywordTwo", List.of(';', ',')));
+    }
+
+    @Test
+    void parseImportWithCommaDelimiter() {
+        // Current behavior: semicolons are NOT recognized when delimiter is comma
+        assertEquals(new KeywordList("keywordOne", "keywordTwo"),
+                KeywordList.parseImport("keywordOne, keywordTwo", List.of(';', ',')));
+    }
+
+    @Test
+    void parseImportPrefersSemicolonOverComma() {
+        // Current behavior: semicolons are NOT recognized when delimiter is comma
+        assertEquals(new KeywordList("keywordOne, keywordTwo", "keywordThree"),
+                KeywordList.parseImport("keywordOne, keywordTwo; keywordThree", List.of(';', ',')));
+    }
+
+    @Test
     void parseHierarchicalChain() {
         Keyword expected = Keyword.of(List.of("Parent", "Node", "Child"));
 
         assertEquals(new KeywordList(expected), KeywordList.parse("Parent > Node > Child", ','));
+    }
+
+    @Test
+    void parseImportHierarchicalChain() {
+        Keyword expected = Keyword.of(List.of("Parent", "Node", "Child"));
+
+        assertEquals(new KeywordList(expected), KeywordList.parseImport("Parent > Node > Child", List.of(';', ',')));
     }
 
     @Test

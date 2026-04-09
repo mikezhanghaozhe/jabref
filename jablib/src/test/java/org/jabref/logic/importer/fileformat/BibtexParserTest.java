@@ -2151,7 +2151,7 @@ class BibtexParserTest {
                 """);
 
         BibEntry expectedEntry = new BibEntry(StandardEntryType.Article)
-                .withField(StandardField.KEYWORDS, "asdf,asdf,asdf");
+                .withField(StandardField.KEYWORDS, "asdf");
 
         assertEquals(Optional.of(expectedEntry), result);
     }
@@ -2163,7 +2163,7 @@ class BibtexParserTest {
                 .withCitationKey("Test2017");
 
         BibEntry expectedEntrySecond = new BibEntry(StandardEntryType.Article)
-                .withField(StandardField.KEYWORDS, "asdf,asdf,asdf");
+                .withField(StandardField.KEYWORDS, "asdf");
 
         String entries = """
                 @Article{Test2017,

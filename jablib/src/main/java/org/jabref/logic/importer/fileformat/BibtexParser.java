@@ -99,6 +99,7 @@ public class BibtexParser implements Parser {
     private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
     private static final Pattern EPILOG_PATTERN = Pattern.compile("\\w+\\s*=.*,");
     private static final int INDEX_RELATIVE_PATH_IN_PLIST = 4;
+    private static final List<Character> IMPORT_KEYWORD_DELIMITERS = List.of(';', ','); // Default delimiters to try when importing keywords, in priority order.
     private final Deque<Character> pureTextFromFile = new LinkedList<>();
     private final ImportFormatPreferences importFormatPreferences;
     private PushbackReader pushbackReader;
@@ -108,10 +109,6 @@ public class BibtexParser implements Parser {
 
     private int line = 1;
     private int column = 1;
-
-    // Default delimiters to try when importing keywords, in priority order.
-    // It overrides the delimiter stored in preference.
-    private final List<Character> IMPORT_KEYWORD_DELIMITERS = List.of(';', ',');
 
     // Stores the last read column of the highest column number encountered on any line so far.
     // The intended data structure is Stack, but it is not used because Java code style checkers complain.

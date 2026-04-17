@@ -42,7 +42,6 @@ import org.jabref.model.database.KeyCollisionException;
 import org.jabref.model.entry.BibEntry;
 import org.jabref.model.entry.BibEntryType;
 import org.jabref.model.entry.BibtexString;
-import org.jabref.model.entry.Keyword;
 import org.jabref.model.entry.KeywordList;
 import org.jabref.model.entry.LinkedFile;
 import org.jabref.model.entry.field.Field;
@@ -765,14 +764,9 @@ public class BibtexParser implements Parser {
                     entry.setField(field, entry.getField(field).orElse("") + " and " + content);
                 } else if (StandardField.KEYWORDS == field) { // If there are duplicated keywords fields.
                     // TODO: multiple keywords fields should be combined to one
-
                     // Parse the new content with the heuristic delimiter.
                     KeywordList importedKeywords = KeywordList.parseImport(content, IMPORT_KEYWORD_DELIMITERS);
-                    Character outputDelimiter = importFormatPreferences.bibEntryPreferences().getKeywordSeparator();
-                    // Add each keyword individually.
-                    for (Keyword kw : importedKeywords) {
-                        entry.addKeyword(kw, outputDelimiter);
-                    }
+                    entry.addKeywords(importedKeywords, importFormatPreferences.bibEntryPreferences().getKeywordSeparator());
                 }
             } else {
                 // If a BibDesk File Field is encountered
@@ -804,12 +798,10 @@ public class BibtexParser implements Parser {
                         LOGGER.error("Could not parse BibDesk files content (field: bdsk-file...) for entry {}", entry, e);
                     }
                 } else {
-                    if (StandardField.KEYWORDS == field) { // If there are no duplicated keywords fields encountered yet.
-                        // Import the keywordList with default, heuristic delimiter.
-                        KeywordList parsed = KeywordList.parseImport(content, IMPORT_KEYWORD_DELIMITERS);
-                        // Re-serialize with the user's preference delimiter.
-                        entry.setField(field, parsed.getAsString(
-                                importFormatPreferences.bibEntryPreferences().getKeywordSeparator()));
+                    if (StandardField.KEYWORDS == field) { // If it is the first encountered keywords field.
+                        // Parse the new content with the heuristic delimiter.
+                        KeywordList importedKeywords = KeywordList.parseImport(content, IMPORT_KEYWORD_DELIMITERS);
+                        entry.addKeywords(importedKeywords, importFormatPreferences.bibEntryPreferences().getKeywordSeparator());
                     } else {
                         entry.setField(field, content);
                     }
